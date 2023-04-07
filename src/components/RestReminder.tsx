@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   makeStyles,
 } from "@material-ui/core/styles";
@@ -11,6 +11,7 @@ import {
 import CircularProgress from '@material-ui/core/CircularProgress';
 import WorkIcon from '@material-ui/icons/Work';
 import HotelIcon from '@material-ui/icons/Hotel';
+import React from "react";
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -52,19 +53,22 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-
-let timeCountingFunction: any = null; 
-
 interface RestReminderProps {
   isDarkMode: boolean;
   isSilentMode: boolean;
 }
 const RestReminder = ({isDarkMode, isSilentMode}: RestReminderProps) => {
+    // const timeWorker = new TimerWorker();
+    const timeWorker: Worker = useMemo(
+      () => new Worker(new URL("../worker/timer.worker", import.meta.url)),
+      []
+    );
     const classes = useStyles();
+    const [isRunning, setIsRunning] = useState<boolean>(false);
     const [isResting, setIsResting] = useState<boolean>(false);
     const [workTime, setWorkTime] = useState<number>(60); // default work time of 60 minutes
     const [restTime, setRestTime] = useState<number>(5); // default rest time of 5 minutes
-    const [remainingTime, setRemainingTime] = useState<number>(workTime * 60);
+    const [remainingTime, setRemainingTime] = useState<number>(workTime* 60);
     const [shouldSwitch, setShouldSwitch] = useState<boolean>(false);
     const audio = new Audio(require("../assets/notification.mp3"));
   
@@ -74,11 +78,12 @@ const RestReminder = ({isDarkMode, isSilentMode}: RestReminderProps) => {
 
     useEffect(() => {
       if (remainingTime === 0) {
-          clearInterval(timeCountingFunction);
+          setIsRunning(false);
           setShouldSwitch(true);
           setIsResting(!isResting);
           const time = isResting ? restTime : workTime;
           setRemainingTime(time * 60);
+          timeWorker.postMessage('stop');
           if (!isSilentMode)
             audio.play();
       }
@@ -87,25 +92,34 @@ const RestReminder = ({isDarkMode, isSilentMode}: RestReminderProps) => {
     const handleChangeWorkTime = (value: number) => {
       const time = value > 0 ? value : 1;
       setWorkTime(time);
+      if (! isResting)
+        setRemainingTime(time *60);
     };
 
     const handleChangeRestTime = (value: number) => {
       const time = value > 0 ? value : 1;
       setRestTime(time);
+      if (isResting)
+        setRemainingTime(time *60);
     };
 
     const handleStart = (isResting: boolean, workTime: number, restTime: number) => {
-      clearInterval(timeCountingFunction);
-      const time = isResting ? restTime : workTime;
-      setRemainingTime(time * 60);
-      timeCountingFunction = setInterval(() => setRemainingTime((prevTimer) => prevTimer - 1), 1000);
+      setIsRunning(true);
+      timeWorker.postMessage('start');
+      timeWorker.addEventListener('message', (event: { data: number }) => {
+        const time_passed = event.data;
+        const alarm_time = (isResting ? restTime : workTime) * 60; // in secound
+        setRemainingTime(time_passed < alarm_time ? alarm_time - time_passed : 0);
+      });
     };
 
     const handleReset = ()=>{
-      clearInterval(timeCountingFunction);
+      setIsRunning(false);
+      timeWorker.postMessage('stop');
       setIsResting(false);
-      setRemainingTime(workTime*60);
       setShouldSwitch(false);
+      setRemainingTime(workTime *60);
+
     }
 
     const handleProgressBarChange = ()=>{
@@ -161,6 +175,7 @@ const RestReminder = ({isDarkMode, isSilentMode}: RestReminderProps) => {
               type="number"
               label="Work Time (mins)"
               value={workTime}
+              disabled={isRunning}
               onChange={(e) => handleChangeWorkTime(Number(e.target.value))}
               className={classes.input}
             />
@@ -168,6 +183,7 @@ const RestReminder = ({isDarkMode, isSilentMode}: RestReminderProps) => {
               type="number"
               label="Rest Time (mins)"
               value={restTime}
+              disabled={isRunning}
               onChange={(e) => handleChangeRestTime(Number(e.target.value))}
               className={classes.input}
             />
