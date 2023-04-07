@@ -191,6 +191,7 @@ const RestReminder = ({isDarkMode, isSilentMode}: RestReminderProps) => {
           <div className={classes.inputContainer}>
             <Button className={classes.button}
               variant="contained"
+              disabled={isRunning}
               color={isDarkMode ? 'secondary' : 'primary'}
               onClick={()=> handleStart(isResting, workTime, restTime)}
             >
