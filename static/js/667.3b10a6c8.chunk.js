@@ -1,0 +1,2 @@
+!function(){"use strict";var e;self.onmessage=function(t){switch(t.data){case"start":!function(){var t=(new Date).getTime();e=setInterval((function(){postMessage(Math.floor(((new Date).getTime()-t)/1e3))}),1e3)}();break;case"stop":clearInterval(e)}}}();
+//# sourceMappingURL=667.3b10a6c8.chunk.js.map
