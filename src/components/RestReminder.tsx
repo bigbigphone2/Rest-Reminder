@@ -58,7 +58,6 @@ interface RestReminderProps {
   isSilentMode: boolean;
 }
 const RestReminder = ({isDarkMode, isSilentMode}: RestReminderProps) => {
-    // const timeWorker = new TimerWorker();
     const timeWorker: Worker = useMemo(
       () => new Worker(new URL("../worker/timer.worker", import.meta.url)),
       []
