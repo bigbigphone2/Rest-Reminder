@@ -1,3 +1,5 @@
+//Avoid the browser throttle the timer if it's running in the background to conserve resources.
+
 let timerId: NodeJS.Timeout;
 
 function startTimer() {
