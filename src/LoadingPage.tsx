@@ -29,7 +29,6 @@ const LoadingPage = ({ children, isDarkMode }: LoadingPageProps) => {
         <React.Fragment>{children}</React.Fragment>
         ) : (
             <Box
-                bgcolor={isDarkMode ? 'text.secondary' : 'primary.secondary'}
                 sx={{
                     width: '100%',
                     height: '100vh',
