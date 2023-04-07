@@ -40,8 +40,8 @@ const App: React.FC = () => {
 
   return (
     <ThemeProvider theme={theme}>
+      <CssBaseline />
       <LoadingPage isDarkMode={isDarkMode}>
-        <CssBaseline />
         <Header
           isDarkMode={isDarkMode}
           handleDarkMode={handleDarkMode}
