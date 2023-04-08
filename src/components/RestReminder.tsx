@@ -77,14 +77,7 @@ const RestReminder = ({isDarkMode, isSilentMode}: RestReminderProps) => {
 
     useEffect(() => {
       if (remainingTime === 0) {
-          setIsRunning(false);
-          setShouldSwitch(true);
-          setIsResting(!isResting);
-          const time = isResting ? restTime : workTime;
-          setRemainingTime(time * 60);
-          timeWorker.postMessage('stop');
-          if (!isSilentMode)
-            audio.play();
+        handleSwitch();
       }
     }, [remainingTime]);
     
@@ -104,22 +97,33 @@ const RestReminder = ({isDarkMode, isSilentMode}: RestReminderProps) => {
 
     const handleStart = (isResting: boolean, workTime: number, restTime: number) => {
       setIsRunning(true);
-      timeWorker.postMessage('start');
+      const alarm_time = (isResting ? restTime : workTime) * 60; // in secound
+      timeWorker.postMessage({"type" :'start', "args": {alarm_time}});
       timeWorker.addEventListener('message', (event: { data: number }) => {
-        const time_passed = event.data;
-        const alarm_time = (isResting ? restTime : workTime) * 60; // in secound
-        setRemainingTime(time_passed < alarm_time ? alarm_time - time_passed : 0);
+        const time_remain = event.data;
+        setRemainingTime(Math.max(time_remain, 0));
       });
     };
 
     const handleReset = ()=>{
       setIsRunning(false);
-      timeWorker.postMessage('stop');
+      timeWorker.postMessage({"type":'stop'});
       setIsResting(false);
       setShouldSwitch(false);
       setRemainingTime(workTime *60);
 
-    }
+    };
+
+    const handleSwitch = ()=>{
+      setShouldSwitch(true);
+      setIsResting(!isResting);
+      const time = isResting ? restTime : workTime;
+      setRemainingTime(time * 60);
+      setIsRunning(false);
+      timeWorker.postMessage({"type":'stop'});
+      if (!isSilentMode)
+        audio.play();
+    };
 
     const handleProgressBarChange = ()=>{
       const time = (isResting ? restTime : workTime) * 60;

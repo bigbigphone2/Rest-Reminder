@@ -1,11 +1,17 @@
 //Avoid the browser throttle the timer if it's running in the background to conserve resources.
+interface startTimerProps{
+  alarm_time: number;
+}
 
 let timerId: NodeJS.Timeout;
 
-function startTimer() {
+function startTimer(args: startTimerProps) {
+  const alarm_time = args.alarm_time;
   const start_time = new Date().getTime();
   timerId = setInterval(() => {
-    postMessage(Math.floor((new Date().getTime() - start_time)/ 1000)); //time difference
+    const time_passed = Math.floor((new Date().getTime() - start_time)/ 1000);
+    const time_remain = alarm_time - time_passed;
+    postMessage(time_remain); //time difference
   }, 1000);
 }
 
@@ -17,9 +23,9 @@ function stopTimer() {
 const webWorker: Worker = self as any;
 
 webWorker.onmessage = (event: MessageEvent) => {
-  switch (event.data) {
+  switch (event.data.type) {
       case 'start':
-        startTimer();
+        startTimer(event.data.args);
         break;
       case 'stop':
         stopTimer();
