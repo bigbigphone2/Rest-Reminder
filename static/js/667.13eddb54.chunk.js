@@ -1,0 +1,2 @@
+!function(){"use strict";var e;self.onmessage=function(t){switch(t.data.type){case"start":!function(t){var a=t.alarm_time,s=(new Date).getTime();e=setInterval((function(){var e=Math.floor(((new Date).getTime()-s)/1e3);postMessage(a-e)}),1e3)}(t.data.args);break;case"stop":clearInterval(e)}}}();
+//# sourceMappingURL=667.13eddb54.chunk.js.map
