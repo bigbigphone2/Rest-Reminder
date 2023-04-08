@@ -11,7 +11,7 @@ function startTimer(args: startTimerProps) {
   timerId = setInterval(() => {
     const time_passed = Math.floor((new Date().getTime() - start_time)/ 1000);
     const time_remain = alarm_time - time_passed;
-    postMessage(time_remain); //time difference
+    postMessage(time_remain);
   }, 1000);
 }
 
